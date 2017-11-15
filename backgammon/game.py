@@ -79,7 +79,7 @@ class Game:
 
     def take_turn(self, player, roll, draw=False):
         if draw:
-            print("Player %s rolled <%d, %d>." % (player.player, roll[0], roll[1]))
+            print(("Player %s rolled <%d, %d>." % (player.player, roll[0], roll[1])))
             time.sleep(1)
 
         moves = self.get_actions(roll, player.player, nodups=True)
@@ -315,37 +315,39 @@ class Game:
         return False
 
     def draw_col(self,i,col):
-        print "|",
+        print("|", end=' ')
         if i==-2:
             if col<10:
-                print "",
-            print str(col),
+                print("", end=' ')
+            print(str(col), end=' ')
         elif i==-1:
-            print "--",
+            print("--", end=' ')
         elif len(self.grid[col])>i:
-            print " "+self.grid[col][i],
+            print(" "+self.grid[col][i], end=' ')
         else:
-            print "  ",
+            print("  ", end=' ')
 
     def draw(self):
         os.system('clear')
-        largest = max([len(self.grid[i]) for i in range(len(self.grid)/2,len(self.grid))])
+        print(len(self.grid))
+        largest = max([len(self.grid[i]) for i in range(int(len(self.grid)/2),len(self.grid))])
         for i in range(-2,largest):
-            for col in range(len(self.grid)/2,len(self.grid)):
+            for col in range(int(len(self.grid)/2),len(self.grid)):
                 self.draw_col(i,col)
-            print "|"
-        print
-        print
-        largest = max([len(self.grid[i]) for i in range(len(self.grid)/2)])
+            print("|")
+        print()
+        print()
+        largest = max([len(self.grid[i]) for i in range(int(len(self.grid)/2))])
         for i in range(largest-1,-3,-1):
-            for col in range(len(self.grid)/2-1,-1,-1):
+            for col in range(int(len(self.grid)/2)-1,-1,-1):
                 self.draw_col(i,col)
-            print "|"
+            print("|")
         for t in self.players:
-            print "<Player %s>  Off Board : "%(t),
+            print("<Player %s>  Off Board : "%(t), end=' ')
             for piece in self.off_pieces[t]:
-                print t+'',
-            print "   Bar : ",
+                print(t+'', end=' ')
+            print("   Bar : ", end=' ')
             for piece in self.bar_pieces[t]:
-                print t+'',
-            print
+                print(t+'', end=' ')
+            print()
+    
