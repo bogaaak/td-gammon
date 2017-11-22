@@ -5,3 +5,4 @@ summaries/
 models/
 *.pyc
 __pycache__/
+.idea/
