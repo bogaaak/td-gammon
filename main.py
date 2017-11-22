@@ -23,15 +23,22 @@ if not os.path.exists(checkpoint_path):
 if not os.path.exists(summary_path):
     os.makedirs(summary_path)
 
+# FLAGS.restore = True
+#
+
 if __name__ == '__main__':
     graph = tf.Graph()
     sess = tf.Session(graph=graph)
     with sess.as_default():
         with graph.as_default():
             model = Model(sess, model_path, summary_path, checkpoint_path, restore=FLAGS.restore)
+
             if FLAGS.test:
                 model.test(episodes=1000)
             elif FLAGS.play:
                 model.play()
             else:
                 model.train()
+
+
+
