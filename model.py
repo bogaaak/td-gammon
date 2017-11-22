@@ -53,8 +53,8 @@ class Model(object):
         self.V_next = tf.placeholder('float', [1, layer_size_output], name='V_next')
 
         # build network arch. (just 2 layers with sigmoid activation)
-        prev_y = dense_layer(self.x, [layer_size_input, layer_size_hidden], tf.sigmoid, name='layer1')
-        self.V = dense_layer(prev_y, [layer_size_hidden, layer_size_output], tf.sigmoid, name='layer2')
+        self.prev_y = dense_layer(self.x, [layer_size_input, layer_size_hidden], tf.sigmoid, name='layer1')
+        self.V = dense_layer(self.prev_y, [layer_size_hidden, layer_size_output], tf.sigmoid, name='layer2')
 
         # watch the individual value predictions over time
         tf.summary.scalar('V_next', tf.reduce_sum(self.V_next))
@@ -169,8 +169,15 @@ class Model(object):
             print(('Restoring checkpoint: {0}'.format(latest_checkpoint_path)))
             self.saver.restore(self.sess, latest_checkpoint_path)
 
+
     def get_output(self, x):
-        return self.sess.run(self.V, feed_dict={ self.x: x })
+        return self.sess.run(self.V, feed_dict={self.x: x})
+
+    def get_last_layer(self, x):
+        last_layer_features = self.sess.run(self.prev_y, feed_dict={self.x: x})
+        last_layer_weights = self.sess.run("layer2/weight:0")
+        last_layer_bias = self.sess.run("layer2/bias:0")
+        return(last_layer_features, last_layer_weights, last_layer_bias)
 
     def play(self):
         game = Game.new()

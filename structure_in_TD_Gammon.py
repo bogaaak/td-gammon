@@ -28,4 +28,17 @@ FLAGS.restore = True
 graph = tf.Graph()
 sess = tf.InteractiveSession(graph=graph)
 model = Model(sess, model_path, summary_path, checkpoint_path, restore=FLAGS.restore)
+tf.trainable_variables()
+sess.run([v for v in tf.trainable_variables() if v.name == "layer2/weight:0"][0])
+w = sess.run("layer2/weight:0")
+b = sess.run("layer2/bias:0")
+
+
+variables_names =[v.name for v in tf.trainable_variables()]
+values = sess.run(variables_names)
+for k,v in zip(variables_names, values):
+    print(k, v)
+
+
+## Save Graph for tensorboard visualization
 file_writer = tf.summary.FileWriter("checkpoints/", graph)
