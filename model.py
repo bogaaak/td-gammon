@@ -48,6 +48,8 @@ class Model(object):
         layer_size_hidden = 50
         layer_size_output = 1
 
+        self.layer_size_hidden = layer_size_hidden
+
         # placeholders for input and target output
         self.x = tf.placeholder('float', [1, layer_size_input], name='x')
         self.V_next = tf.placeholder('float', [1, layer_size_output], name='V_next')
@@ -173,11 +175,14 @@ class Model(object):
     def get_output(self, x):
         return self.sess.run(self.V, feed_dict={self.x: x})
 
-    def get_last_layer(self, x):
+    def get_last_layer_features(self, x):
         last_layer_features = self.sess.run(self.prev_y, feed_dict={self.x: x})
+        return(last_layer_features)
+
+    def get_last_layer_weights_and_bias(self):
         last_layer_weights = self.sess.run("layer2/weight:0")
         last_layer_bias = self.sess.run("layer2/bias:0")
-        return(last_layer_features, last_layer_weights, last_layer_bias)
+        return (last_layer_weights, last_layer_bias)
 
     def play(self):
         game = Game.new()
@@ -198,6 +203,23 @@ class Model(object):
                 players[1].name, players[1].player, \
                 winners[0], winners[1], winners_total, \
                 (winners[0] / winners_total) * 100.0)))
+
+    def test_structures(self, episodes=100, draw=False):
+        self.players = [TDAgent(Game.TOKENS[0], self), RandomAgent(Game.TOKENS[1])]
+        winners = [0, 0]
+        for episode in range(episodes):
+            game = Game.new()
+
+            winner = game.play(self.players, draw=draw)
+            winners[winner] += 1
+
+            winners_total = sum(winners)
+            print(("[Episode %d] %s (%s) vs %s (%s) %d:%d of %d games (%.2f%%)" % (episode, \
+                self.players[0].name, self.players[0].player, \
+                self.players[1].name, self.players[1].player, \
+                winners[0], winners[1], winners_total, \
+                (winners[0] / winners_total) * 100.0)))
+
 
     def train(self):
         tf.train.write_graph(self.sess.graph_def, self.model_path, 'td_gammon.pb', as_text=False)

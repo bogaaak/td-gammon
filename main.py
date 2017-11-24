@@ -9,6 +9,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_boolean('test', False, 'If true, test against a random strategy.')
 flags.DEFINE_boolean('play', False, 'If true, play against a trained TD-Gammon strategy.')
 flags.DEFINE_boolean('restore', False, 'If true, restore a checkpoint before training.')
+flags.DEFINE_boolean('test_structures', False, 'If true, test and record structures in the environment.')
 
 model_path = os.environ.get('MODEL_PATH', 'models/')
 summary_path = os.environ.get('SUMMARY_PATH', 'summaries/')
@@ -35,10 +36,14 @@ if __name__ == '__main__':
 
             if FLAGS.test:
                 model.test(episodes=1000)
+            elif FLAGS.test_structures:
+                print("bla")
+                model.test_structures(episodes=1000)
             elif FLAGS.play:
                 model.play()
             else:
                 model.train()
+
 
 
 
