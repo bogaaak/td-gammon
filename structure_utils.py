@@ -4,9 +4,9 @@ from sortedcontainers import SortedSet
 
 # Test whether last layer weights and biases are the same across all encountered situations.
 def check_consistency_of_last_layer(al):
-    trueVectorWeights = np.zeros(shape = [len(al)-1], dtype = bool)
-    trueVectorBiases = np.zeros(shape = [len(al)-1], dtype = bool)
-    trueVectorGreaterZero = np.zeros(shape = [len(al)], dtype = bool)
+    trueVectorWeights = np.zeros(shape=[len(al)-1], dtype=bool)
+    trueVectorBiases = np.zeros(shape=[len(al)-1], dtype=bool)
+    trueVectorGreaterZero = np.zeros(shape=[len(al)], dtype=bool)
     for ix, a in enumerate(al):
         trueVectorGreaterZero[ix] = np.all(np.greater(a.feature_matrix, 0))
         if ix > 0:
@@ -21,8 +21,8 @@ def check_consistency_of_last_layer(al):
 # check_consistency_of_last_layer(al)
 
 
-last_layer_weights = [[0.7], [-0.9], [0.8]]
-feature_matrix = np.array([[1, 2, 0, 4, 8], [3, 4, 2, 1, 5], [5, 6, 7, 2, 1]])
+# last_layer_weights = [[0.7], [-0.9], [0.8]]
+# feature_matrix = np.array([[1, 2, 0, 4, 8], [3, 4, 2, 1, 5], [5, 6, 7, 2, 1]])
 def calc_dominance_brute_force(feature_matrix, last_layer_weights):
     n_hidden, n_actions = feature_matrix.shape
 
@@ -33,7 +33,7 @@ def calc_dominance_brute_force(feature_matrix, last_layer_weights):
     feature_matrix = feature_matrix[weight_ordering, :]
 
     # Order by first row
-    first_row_ordering = feature_matrix[0,:].argsort()
+    first_row_ordering = np.lexsort(feature_matrix[::-1])
     first_row_ordering_inverted = first_row_ordering.argsort()
     feature_matrix_sorted_by_first_row = feature_matrix[:, first_row_ordering]
     # possibly_dominated_columns = range(0, n_actions-1)
@@ -42,28 +42,42 @@ def calc_dominance_brute_force(feature_matrix, last_layer_weights):
     possibly_cumulatively_dominated_columns = SortedSet(range(0, n_actions - 1))
     cum_sum_matrix = np.cumsum(feature_matrix_sorted_by_first_row, axis=0)
     dominated_columns = np.zeros(n_actions, dtype=bool)
+    dominance_equivalent_columns = np.zeros(n_actions, dtype=bool)
     for col_ix in range(n_actions-1):  # col_ix = 0
         # print("col")
         col = feature_matrix_sorted_by_first_row[:, col_ix]
         compare_col_ix = col_ix + 1
         dominated = False
+        equivalence_dominated = False
         while not dominated and compare_col_ix < n_actions:
             # print("compare_col")
             compare_col = feature_matrix_sorted_by_first_row[:, compare_col_ix]
             contradicted = False
             row_ix = 0
+            equal_count = 0  # for checking dominance equivalency
             while not contradicted and row_ix < n_hidden:
                 # print("row", row_ix)
                 if col[row_ix] > compare_col[row_ix]:
                     contradicted = True
+                elif col[row_ix] == compare_col[row_ix]:
+                    equal_count += 1
+                    row_ix += 1
                 else:
                     row_ix += 1
-            if not contradicted:  # Meaning it went through all rows and is dominated
-                dominated = True
+            if not contradicted:  # It went through all rows and is dominated
+                if equal_count == n_hidden:  # It is equivalence dominated
+                    equivalence_dominated = True
+                else:
+                    dominated = True
             compare_col_ix += 1
         if dominated:
             dominated_columns[col_ix] = True
-    return dominated_columns
+        if equivalence_dominated:
+            dominance_equivalent_columns[col_ix] = True
+    return dominated_columns, dominance_equivalent_columns
+
+
+
 
 
 

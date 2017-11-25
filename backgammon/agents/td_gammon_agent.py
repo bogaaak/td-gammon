@@ -5,12 +5,13 @@ def sigmoidNumpy(x):
     return 1 / (1 + np.exp(-x))
 
 class ActionData(object):
-    def __init__(self, counter, n_actions, feature_matrix, last_layer_weights, last_layer_bias):
+    def __init__(self, counter, n_actions, feature_matrix, last_layer_weights, last_layer_bias, actions):
         self.counter = counter
         self.n_actions = n_actions
         self.feature_matrix = feature_matrix
         self.last_layer_weights = last_layer_weights
         self.last_layer_bias = last_layer_bias
+        self.actions = actions
 
 
 class TDAgent(object):
@@ -27,13 +28,20 @@ class TDAgent(object):
         Return best action according to self.evaluationFunction,
         with no lookahead.
         """
+
+        ###
+        # actionsX = copy.copy(actions)
+        # print(actions)
+        # actions = set(frozenset(i) for i in actions)
+        # actions = set(tuple(i) for i in actions)
+
         v_best = 0
         a_best = None
-        print(actions)
         n_actions = len(actions)
-        print(n_actions)
-        if n_actions > 1000:
-            print(n_actions)
+        # print(actions)
+        # print(n_actions)
+        # if n_actions > 1000:
+        #     print(n_actions)
         feature_matrix = np.zeros(shape=[self.layer_size_hidden, n_actions])
         last_layer_weights, last_layer_bias = self.model.get_last_layer_weights_and_bias()
 
@@ -56,7 +64,7 @@ class TDAgent(object):
             game.undo_action(a, self.player, ateList)
 
         # Store action data
-        action_data = ActionData(self.counter, n_actions, feature_matrix, last_layer_weights, last_layer_bias)
+        action_data = ActionData(self.counter, n_actions, feature_matrix, last_layer_weights, last_layer_bias, actions)
         self.actions_list.append(action_data)
         self.counter += 1
         return a_best
