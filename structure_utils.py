@@ -36,13 +36,11 @@ def calc_dominance_brute_force(feature_matrix, last_layer_weights):
     first_row_ordering = np.lexsort(feature_matrix[::-1])
     first_row_ordering_inverted = first_row_ordering.argsort()
     feature_matrix_sorted_by_first_row = feature_matrix[:, first_row_ordering]
-    # possibly_dominated_columns = range(0, n_actions-1)
-    # possibly_cumulatively_dominated_columns = range(0, n_actions - 1)
-    possibly_dominated_columns = SortedSet(range(0, n_actions - 1))
-    possibly_cumulatively_dominated_columns = SortedSet(range(0, n_actions - 1))
     cum_sum_matrix = np.cumsum(feature_matrix_sorted_by_first_row, axis=0)
     dominated_columns = np.zeros(n_actions, dtype=bool)
     dominance_equivalent_columns = np.zeros(n_actions, dtype=bool)
+    cum_dominated_columns = np.zeros(n_actions, dtype=bool)
+    cum_dominance_equivalent_columns = np.zeros(n_actions, dtype=bool)
     for col_ix in range(n_actions-1):  # col_ix = 0
         # print("col")
         col = feature_matrix_sorted_by_first_row[:, col_ix]
@@ -74,7 +72,45 @@ def calc_dominance_brute_force(feature_matrix, last_layer_weights):
             dominated_columns[col_ix] = True
         if equivalence_dominated:
             dominance_equivalent_columns[col_ix] = True
-    return dominated_columns, dominance_equivalent_columns
+
+        ## Cumulative dominance
+        col = cum_sum_matrix[:, col_ix]
+        compare_col_ix = col_ix + 1
+        cum_dominated = False
+        cum_equivalence_dominated = False
+        while not cum_dominated and compare_col_ix < n_actions:
+            # print("compare_col")
+            compare_col = cum_sum_matrix[:, compare_col_ix]
+            contradicted = False
+            row_ix = 0
+            equal_count = 0  # for checking dominance equivalency
+            while not contradicted and row_ix < n_hidden:
+                # print("row", row_ix)
+                if col[row_ix] > compare_col[row_ix]:
+                    contradicted = True
+                elif col[row_ix] == compare_col[row_ix]:
+                    equal_count += 1
+                    row_ix += 1
+                else:
+                    row_ix += 1
+            if not contradicted:  # It went through all rows and is dominated
+                if equal_count == n_hidden:  # It is equivalence dominated
+                    cum_equivalence_dominated = True
+                else:
+                    cum_dominated = True
+            compare_col_ix += 1
+        if cum_dominated:
+            cum_dominated_columns[col_ix] = True
+        if cum_equivalence_dominated:
+            cum_dominance_equivalent_columns[col_ix] = True
+
+    dominated_columns = dominated_columns[first_row_ordering_inverted]
+    dominance_equivalent_columns = dominance_equivalent_columns[first_row_ordering_inverted]
+    cum_dominated_columns = cum_dominated_columns[first_row_ordering_inverted]
+    cum_dominance_equivalent_columns = cum_dominance_equivalent_columns[first_row_ordering_inverted]
+
+
+    return dominated_columns, dominance_equivalent_columns, cum_dominated_columns, cum_dominance_equivalent_columns
 
 
 

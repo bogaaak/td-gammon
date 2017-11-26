@@ -42,7 +42,7 @@ if __name__ == '__main__':
                 model.test(episodes=1000)
             elif FLAGS.test_structures:
                 print("bla")
-                model.test_structures(episodes=10)
+                model.test_structures(episodes=20)
             elif FLAGS.play:
                 model.play()
             else:
@@ -58,15 +58,46 @@ check_consistency_of_last_layer(al)
 # mean_dom = [0.] * len(al)
 mean_dom = dict.fromkeys(range(len(al)))
 mean_dom_eq = dict.fromkeys(range(len(al)))
+mean_cum_dom = dict.fromkeys(range(len(al)))
+mean_cum_dom_eq = dict.fromkeys(range(len(al)))
+
+number_of_actions = np.zeros(len(al), dtype=int)
+
 for ix, a in enumerate(al):
     last_layer_weights = a.last_layer_weights
     feature_matrix = a.feature_matrix
-    dominated_columns, dominance_equivalent_columns = calc_dominance_brute_force(feature_matrix, last_layer_weights)
+    number_of_actions[ix] = a.n_actions
+    dominated_columns, dominance_equivalent_columns, cum_dominated_columns, cum_dominance_equivalent_columns = \
+        calc_dominance_brute_force(feature_matrix, last_layer_weights)
     mean_dom[ix] = np.mean(dominated_columns)
-    mean_dom_eq[ix] = np.mean(dominated_columns)
+    mean_dom_eq[ix] = np.mean(dominance_equivalent_columns)
+    mean_cum_dom[ix] = np.mean(cum_dominated_columns)
+    mean_cum_dom_eq[ix] = np.mean(cum_dominance_equivalent_columns)
+
+np.mean(np.array(list(mean_cum_dom.values())))
+np.mean(np.array(list(mean_cum_dom_eq.values())))
 
 
+## Random baseline!
+mean_dom = dict.fromkeys(range(len(al)))
+mean_dom_eq = dict.fromkeys(range(len(al)))
+mean_cum_dom = dict.fromkeys(range(len(al)))
+mean_cum_dom_eq = dict.fromkeys(range(len(al)))
+for ix, na in enumerate(number_of_actions):
+    last_layer_weights = np.vstack(np.random.randn(50))
+    feature_matrix = np.random.randn(50, int(np.ceil(na/2)))
+    dominated_columns, dominance_equivalent_columns, cum_dominated_columns, cum_dominance_equivalent_columns = \
+        calc_dominance_brute_force(feature_matrix, last_layer_weights)
+    mean_dom[ix] = np.mean(dominated_columns)
+    mean_dom_eq[ix] = np.mean(dominance_equivalent_columns)
+    mean_cum_dom[ix] = np.mean(cum_dominated_columns)
+    mean_cum_dom_eq[ix] = np.mean(cum_dominance_equivalent_columns)
 
+
+np.mean(np.array(list(mean_dom.values())))
+np.mean(np.array(list(mean_dom_eq.values())))
+np.mean(np.array(list(mean_cum_dom.values())))
+np.mean(np.array(list(mean_cum_dom_eq.values())))
 
 
 
